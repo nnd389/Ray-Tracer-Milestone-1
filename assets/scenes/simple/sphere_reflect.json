@@ -1,0 +1,34 @@
+[
+  {
+    "camera": {
+      "position": [5.0, 0.0, 0.0],
+      "viewdir": [-1.0, 0.0, 0.0],
+      "updir": [0.0, 1.0, 0.0]
+    }
+  },
+  {
+    "directional_light": {
+      "direction": [-1.0, -1.0, -0.2],
+      "color": [1.0, 1.0, 1.0]
+    }
+  },
+  {
+    "scale": [
+      [1.5, 1.5, 1.5],
+      [
+        {
+          "sphere": {
+            "material": {
+              "specular": { "constant": [0.9, 0.9, 0.9] },
+              "reflective": { "constant": [0.9, 0.9, 0.9] },
+              "diffuse": { "constant": [0.0, 0.0, 0.0] },
+              "transmissive": { "constant": [0.0, 0.0, 0.0] },
+              "shininess": 256.0,
+              "index": 1.5
+            }
+          }
+        }
+      ]
+    ]
+  }
+]

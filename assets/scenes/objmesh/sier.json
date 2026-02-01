@@ -1,0 +1,26 @@
+[
+  {
+    "camera": {
+      "position": [-0.491161, 1.24365, 2.18402],
+      "viewdir": [0.474065, -0.355682, -0.805452],
+      "updir": [-0.252396, 0.821492, -0.511319],
+      "fov": 45.0
+    }
+  },
+  {
+    "directional_light": {
+      "direction": [0.474065, -0.355682, -0.805452],
+      "color": [1.0, 1.0, 1.0]
+    }
+  },
+  {
+    "material": {
+      "emissive": { "constant": [0.0, 0.0, 0.0] },
+      "ambient": { "constant": [0.2, 0.2, 0.2] },
+      "specular": { "constant": [0.0, 0.0, 0.0] },
+      "transmissive": { "constant": [0.0, 0.0, 0.0] },
+      "shininess": 25.6
+    }
+  },
+  { "obj_mesh": { "objfile": "sier.obj" } }
+]

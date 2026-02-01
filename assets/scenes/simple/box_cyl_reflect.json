@@ -1,0 +1,58 @@
+[
+  {
+    "camera": {
+      "position": [15.0, 0.0, 5.0],
+      "viewdir": [-1.0, 0.0, -0.3],
+      "updir": [0.0, 0.0, 1.0]
+    }
+  },
+  { "ambient_light": { "color": [0.25, 0.25, 0.25] } },
+  {
+    "directional_light": {
+      "direction": [-1.0, 0.0, -0.2],
+      "color": [1.0, 1.0, 1.0]
+    }
+  },
+  {
+    "translate": [
+      [0.0, 0.0, -2.0],
+      [
+        {
+          "scale": [
+            [15.0, 15.0, 1.0],
+            [
+              {
+                "box": {
+                  "material": {
+                    "specular": { "constant": [0.5, 0.5, 0.5] },
+                    "reflective": { "constant": [1.0, 1.0, 1.0] },
+                    "diffuse": { "constant": [0.5, 0.0, 0.0] },
+                    "shininess": 25.6
+                  }
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "translate": [
+      [0.0, 0.0, 1.0],
+      [
+        {
+          "cylinder": {
+            "material": {
+              "ambient": { "constant": [0.0, 1.0, 0.0] },
+              "specular": { "constant": [0.5, 0.5, 0.5] },
+              "reflective": { "constant": [1.0, 1.0, 1.0] },
+              "diffuse": { "constant": [0.0, 0.5, 0.0] },
+              "shininess": 25.6
+            }
+          }
+        }
+      ]
+    ]
+  }
+]

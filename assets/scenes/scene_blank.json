@@ -1,0 +1,17 @@
+[
+  {
+    "camera": {
+      "position": [0.0, 0.0, 0.0],
+      "viewdir": [1.0, -1.0, -1.0],
+      "updir": [0.0, 1.0, 0.0],
+      "aspectratio": 1.0
+    }
+  },
+  {
+    "directional_light": {
+      "direction": [0.0, 0.0, -1.0],
+      "color": [0.8, 0.8, 0.8]
+    }
+  },
+  { "point_light": { "position": [-1.0, 1.0, -1.0], "color": [1.0, 0.6, 0.6] } }
+]

@@ -1,0 +1,115 @@
+[
+  {
+    "camera": {
+      "position": [5.0, 0.0, 0.0],
+      "viewdir": [-1.0, 0.0, 0.0],
+      "updir": [0.0, 1.0, 0.0]
+    }
+  },
+  {
+    "directional_light": {
+      "direction": [-1.0, -1.0, -0.2],
+      "color": [1.0, 1.0, 1.0]
+    }
+  },
+  {
+    "scale": [
+      [0.2, 1.5, 1.5],
+      [
+        {
+          "sphere": {
+            "material": {
+              "specular": { "constant": [0.7, 0.7, 0.7] },
+              "reflective": { "constant": [0.7, 0.7, 0.7] },
+              "diffuse": { "constant": [0.0, 0.02, 0.02] },
+              "transmissive": { "constant": [0.7, 0.7, 0.7] },
+              "shininess": 256.0,
+              "index": 1.5
+            }
+          }
+        }
+      ]
+    ]
+  },
+  {
+    "rotate": [
+      [1.0, 0.0, 0.0],
+      -1.5707,
+      [
+        {
+          "translate": [
+            [-2.0, -1.0, -10.0],
+            [
+              {
+                "scale": [
+                  [0.2, 0.2, 20.0],
+                  [
+                    {
+                      "cylinder": {
+                        "material": {
+                          "specular": { "constant": [0.7, 0.7, 0.7] },
+                          "diffuse": { "constant": [0.8, 0.4, 0.0] },
+                          "shininess": 25.6
+                        }
+                      }
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "rotate": [
+      [1.0, 0.0, 0.0],
+      -1.5707,
+      [
+        {
+          "translate": [
+            [0.0, 0.5, 0.0],
+            [
+              {
+                "rotate": [
+                  [1.0, 0.0, 0.0],
+                  0.6,
+                  [
+                    {
+                      "translate": [
+                        [-2.0, -1.0, -10.0],
+                        [
+                          {
+                            "scale": [
+                              [0.2, 0.2, 20.0],
+                              [
+                                {
+                                  "cylinder": {
+                                    "material": {
+                                      "specular": {
+                                        "constant": [0.7, 0.7, 0.7]
+                                      },
+                                      "diffuse": {
+                                        "constant": [0.8, 0.0, 0.4]
+                                      },
+                                      "shininess": 25.6
+                                    }
+                                  }
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        }
+      ]
+    ]
+  }
+]

@@ -1,0 +1,43 @@
+[
+  {
+    "camera": {
+      "position": [-4.0, -4.0, 2.0],
+      "viewdir": [1.0, 1.0, -0.5],
+      "updir": [0.0, 0.0, 1.0],
+      "aspectratio": 1.0
+    }
+  },
+  {
+    "point_light": {
+      "position": [-2.0, -2.0, 2.0],
+      "color": [0.5, 0.5, 0.5],
+      "constant_attenuation_coeff": 0.25,
+      "linear_attenuation_coeff": 0.003372407,
+      "quadratic_attenuation_coeff": 0.000045492
+    }
+  },
+  {
+    "material": {
+      "diffuse": {
+        "constant": [1.0, 1.0, 1.0]
+      }
+    }
+  },
+  {
+    "directional_light": {
+      "direction": [1.0, 1.0, -0.5],
+      "color": [1.0, 1.0, 1.0]
+    }
+  },
+  {
+    "directional_light": {
+      "direction": [0.0, 1.0, 0.0],
+      "color": [0.2, 0.2, 0.2]
+    }
+  },
+  {
+    "obj_mesh": {
+      "objfile": "capsule.obj"
+    }
+  }
+]

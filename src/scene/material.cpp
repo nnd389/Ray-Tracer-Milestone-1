@@ -42,7 +42,50 @@ glm::dvec3 Material::shade(Scene *scene, const ray &r, const isect &i) const {
   // 		.
   // 		.
   // }
-  return kd(i);
+  // /Users/kneenaugh/Desktop/Ray-Tracer-Milestone-1/assets/scenes/cone.json
+  glm::dvec3 P = r.at(i.getT());
+  glm::dvec3 N = glm::normalize(i.getN());
+  glm::dvec3 V = glm::normalize(-r.getDirection());
+
+  glm::dvec3 color(0.0, 0.0, 0.0);
+  glm::dvec3 ambientIntensity(0.3, 0.3, 0.3); // FIX: decided to just get small global ambient light
+  glm::dvec3 ambientTerm = ka(i) * ambientIntensity;
+  glm::dvec3 emmisiveTerm = ke(i);
+  color += ambientTerm + emmisiveTerm;
+
+  for (const auto& pLight : scene->getAllLights()){
+    glm::dvec3 L = glm::normalize(pLight->getDirection(P));
+    //glm::dvec3 R = glm::normalize(2.0*glm::dot(N,L) * N - L);
+    glm::dvec3 R = glm::reflect(-L, N); // CHECK: what is R? the reflection of L_j about N?
+    glm::dvec3 I = pLight->getColor();
+
+    // Diffuse Term
+    double NdotL = std::max(glm::dot(N,L), 0.0);
+
+    // Specular Term
+    double VdotR = std::max(glm::dot(V,R), 0.0);
+    double spec = pow(VdotR, shininess(i));
+
+    // Distance attenuation: 1/(a0 + a1*dj + a2*dj^2)
+    double attenuation = pLight->distanceAttenuation(P); // FIX: fix code in distanceAttenuation in light.cpp
+    //FIX: also need to call shadowAttenuation, but where?? 
+
+    color += I * attenuation * (kd(i)*NdotL + ks(i)*spec);
+
+
+
+    if (debugMode){
+      std::cout << "---- Phong vectors ----\n"; // prints per light
+      std::cout << "N = " << N << "\n";
+      std::cout << "L = " << L << "\n";
+      std::cout << "V = " << V << "\n";
+      std::cout << "R = " << R << "\n";
+      std::cout << "-----------------------\n";
+    }
+  }
+
+  //return kd(i);
+  return color;
 }
 
 TextureMap::TextureMap(string filename) {

@@ -1,0 +1,35 @@
+[
+  {
+    "camera": {
+      "position": [0.0, 0.0, -4.0],
+      "viewdir": [0.0, 0.0, 1.0],
+      "updir": [0.0, 1.0, 0.0],
+      "aspectratio": 1.0
+    }
+  },
+  {
+    "directional_light": {
+      "direction": [0.0, 0.0, 1.0],
+      "color": [0.2, 0.2, 0.2]
+    }
+  },
+  {
+    "point_light": { "position": [-2.0, 2.0, -2.0], "color": [1.0, 0.3, 0.3] }
+  },
+  {
+    "scale": [
+      [1.5, 1.5, 1.5],
+      [
+        {
+          "square": {
+            "material": {
+              "specular": { "constant": [1.0, 1.0, 0.0] },
+              "diffuse": { "mapped": "skin1.bmp" },
+              "shininess": 64.0
+            }
+          }
+        }
+      ]
+    ]
+  }
+]
