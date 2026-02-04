@@ -54,13 +54,8 @@ glm::dvec3 Material::shade(Scene *scene, const ray &r, const isect &i) const {
   glm::dvec3 emmisiveTerm = ke(i);
 
   // ambient term
-  //glm::dvec3 ambientIntensity(0.3, 0.3, 0.3); // FIX: decided to just get small global ambient light
-  // FIX: the ambient intenstity comes from scene.h!! 
-  //glm::dvec3 ambientTerm = ka(i) * ambientIntensity; // theres a method called ambient in scene.h and returns ambientIntenstiy
   glm::dvec3 ambientTerm = ka(i) * scene->ambient();
 
-
-  
   color += ambientTerm + emmisiveTerm;
 
   for (const auto& pLight : scene->getAllLights()){
@@ -83,18 +78,8 @@ glm::dvec3 Material::shade(Scene *scene, const ray &r, const isect &i) const {
     // multiply shadow attentuation and distance attentuation
 
 
-    color += I * lightAttenuation * (kd(i)*NdotL + ks(i)*spec);
+    color += I * lightAttenuation * shadowAtten * (kd(i)*NdotL + ks(i)*spec);
 
-
-
-    // if (debugMode){
-    //   std::cout << "---- Phong vectors ----\n"; // prints per light
-    //   std::cout << "N = " << N << "\n";
-    //   std::cout << "L = " << L << "\n";
-    //   std::cout << "V = " << V << "\n";
-    //   std::cout << "R = " << R << "\n";
-    //   std::cout << "-----------------------\n";
-    // }
   }
 
   //return kd(i);

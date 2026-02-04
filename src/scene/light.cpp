@@ -18,7 +18,28 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray &r,
   // You should implement shadow-handling code here.
   // ask chatgpt about shadow attenuation: for non-transperent is zero for transparent is something 
   // attenuate by k_t^d 
-  return glm::dvec3(1.0, 1.0, 1.0);
+
+  glm::dvec3 attenuation(1.0, 1.0, 1.0);
+  ray shadowRay = r;
+  isect i;
+
+  // trace direcntional lights until infinite
+  //while(shadowRay.getScene()->intersect(shadowRay, i)){
+  while(getScene()->intersect(shadowRay, i)){
+    const Material &mat = i.getMaterial();
+    if (!mat.Trans()){
+      return glm::dvec3(0.0, 0.0, 0.0);
+    }
+
+    double d = i.getT(); // d is distance travelled INSIDE object
+    glm::dvec3 kt = mat.kt(i); 
+    attenuation *= glm::pow(kt, glm::dvec3(d)); //attenuate by kt^d
+
+    shadowRay = ray(shadowRay.at(i.getT()) + RAY_EPSILON*shadowRay.getDirection(), shadowRay.getDirection(), shadowRay.getAtten(), ray::SHADOW); // continue ray past intersection
+  }
+  return attenuation; 
+
+  //return glm::dvec3(1.0, 1.0, 1.0);
 }
 
 glm::dvec3 DirectionalLight::getColor() const { return color; }
@@ -56,9 +77,38 @@ glm::dvec3 PointLight::getDirection(const glm::dvec3 &P) const {
 }
 
 glm::dvec3 PointLight::shadowAttenuation(const ray &r,
-                                         const glm::dvec3 &p) const {
+                                         const glm::dvec3 &p) const {                                     
   // YOUR CODE HERE:
   // You should implement shadow-handling code here.
+  glm::dvec3 attenuation(1.0, 1.0, 1.0);
+
+  
+  glm::dvec3 toLight = position-p;// DIrection  from point to light
+  double maxDist = glm::length(toLight);
+  glm::dvec3 dir = glm::normalize(toLight);
+
+  ray shadowRay(p+RAY_EPSILON*dir, dir, glm::dvec3(1.0), ray::SHADOW);
+  isect i;
+
+  while (scene->intersect(shadowRay,i)){
+    double t = i.getT();
+    if (t>=maxDist){
+      break; // ignore if intersection is beyonf light
+    }
+    const Material &m = i.getMaterial();
+    glm::dvec3 kt = m.kt(i);
+
+    if(glm::length(kt) == 0.0){
+      return glm::dvec3(0.0); // opaque objects completely blocks light
+    }
+
+    double d = t; // d is distance travled inside the object
+    attenuation *= glm::pow(kt, glm::dvec3(d));
+
+    shadowRay = ray(shadowRay.at(t) + RAY_EPSILON*dir, dir, shadowRay.getAtten(), ray::SHADOW); // go past interseciton
+  }
+  return attenuation;
+
   return glm::dvec3(1, 1, 1);
 }
 
