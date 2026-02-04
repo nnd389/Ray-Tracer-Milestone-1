@@ -43,21 +43,30 @@ glm::dvec3 Material::shade(Scene *scene, const ray &r, const isect &i) const {
   // 		.
   // }
   // /Users/kneenaugh/Desktop/Ray-Tracer-Milestone-1/assets/scenes/cone.json
+  // ./ray -r 5 /Users/kneenaugh/Desktop/Ray-Tracer-Milestone-1/assets/scenes/cone.json output.png
   glm::dvec3 P = r.at(i.getT());
-  glm::dvec3 N = glm::normalize(i.getN());
-  glm::dvec3 V = glm::normalize(-r.getDirection());
+  glm::dvec3 N = glm::normalize(i.getN()); // N is the normal
+  glm::dvec3 V = glm::normalize(-r.getDirection()); // V is the in direciton, might need to check the sign
 
   glm::dvec3 color(0.0, 0.0, 0.0);
-  glm::dvec3 ambientIntensity(0.3, 0.3, 0.3); // FIX: decided to just get small global ambient light
-  glm::dvec3 ambientTerm = ka(i) * ambientIntensity;
+
+  // emmissive term
   glm::dvec3 emmisiveTerm = ke(i);
+
+  // ambient term
+  //glm::dvec3 ambientIntensity(0.3, 0.3, 0.3); // FIX: decided to just get small global ambient light
+  // FIX: the ambient intenstity comes from scene.h!! 
+  //glm::dvec3 ambientTerm = ka(i) * ambientIntensity; // theres a method called ambient in scene.h and returns ambientIntenstiy
+  glm::dvec3 ambientTerm = ka(i) * scene->ambient();
+
+
+  
   color += ambientTerm + emmisiveTerm;
 
   for (const auto& pLight : scene->getAllLights()){
-    glm::dvec3 L = glm::normalize(pLight->getDirection(P));
-    //glm::dvec3 R = glm::normalize(2.0*glm::dot(N,L) * N - L);
-    glm::dvec3 R = glm::reflect(-L, N); // CHECK: what is R? the reflection of L_j about N?
-    glm::dvec3 I = pLight->getColor();
+    glm::dvec3 L = glm::normalize(pLight->getDirection(P)); // shading light from intersection to light
+    glm::dvec3 R = glm::reflect(-L, N); // CHECK: what is R? the reflection of L_j about N? R is the reflected direcltion if the light 
+    glm::dvec3 I = pLight->getColor(); //yes!
 
     // Diffuse Term
     double NdotL = std::max(glm::dot(N,L), 0.0);
@@ -66,22 +75,26 @@ glm::dvec3 Material::shade(Scene *scene, const ray &r, const isect &i) const {
     double VdotR = std::max(glm::dot(V,R), 0.0);
     double spec = pow(VdotR, shininess(i));
 
-    // Distance attenuation: 1/(a0 + a1*dj + a2*dj^2)
-    double attenuation = pLight->distanceAttenuation(P); // FIX: fix code in distanceAttenuation in light.cpp
+    // Distance attenuation: min(1, 1/(a0 + a1*dj + a2*dj^2))
+    double lightAttenuation = pLight->distanceAttenuation(P); // FIX: fix code in distanceAttenuation in light.cpp
     //FIX: also need to call shadowAttenuation, but where?? 
+    glm::dvec3 shadowAtten = pLight->shadowAttenuation(r,P); // where do I use this though?
 
-    color += I * attenuation * (kd(i)*NdotL + ks(i)*spec);
+    // multiply shadow attentuation and distance attentuation
+
+
+    color += I * lightAttenuation * (kd(i)*NdotL + ks(i)*spec);
 
 
 
-    if (debugMode){
-      std::cout << "---- Phong vectors ----\n"; // prints per light
-      std::cout << "N = " << N << "\n";
-      std::cout << "L = " << L << "\n";
-      std::cout << "V = " << V << "\n";
-      std::cout << "R = " << R << "\n";
-      std::cout << "-----------------------\n";
-    }
+    // if (debugMode){
+    //   std::cout << "---- Phong vectors ----\n"; // prints per light
+    //   std::cout << "N = " << N << "\n";
+    //   std::cout << "L = " << L << "\n";
+    //   std::cout << "V = " << V << "\n";
+    //   std::cout << "R = " << R << "\n";
+    //   std::cout << "-----------------------\n";
+    // }
   }
 
   //return kd(i);

@@ -16,6 +16,8 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray &r,
                                                const glm::dvec3 &p) const {
   // YOUR CODE HERE:
   // You should implement shadow-handling code here.
+  // ask chatgpt about shadow attenuation: for non-transperent is zero for transparent is something 
+  // attenuate by k_t^d 
   return glm::dvec3(1.0, 1.0, 1.0);
 }
 
@@ -26,12 +28,25 @@ glm::dvec3 DirectionalLight::getDirection(const glm::dvec3 &) const {
 }
 
 double PointLight::distanceAttenuation(const glm::dvec3 &P) const {
+
   // YOUR CODE HERE
+
+  // Calculate distance form light to point
+  // only works for point light
+  // there are two classes of light, directonal light and point light, d is only for point light
+  double d = glm::length(position-P);
+  double a0 = constantTerm;
+  double a1 = linearTerm;
+  double a2 = quadraticTerm;
+  double denom = a0 + a1*d + a2*d*d;
+
+  return std::min(1.0, 1.0/denom);
+
 
   // You'll need to modify this method to attenuate the intensity
   // of the light based on the distance between the source and the
   // point P.  For now, we assume no attenuation and just return 1.0
-  return 1.0;
+
 }
 
 glm::dvec3 PointLight::getColor() const { return color; }

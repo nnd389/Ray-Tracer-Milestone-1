@@ -236,7 +236,18 @@ void RayTracer::traceImage(int w, int h) {
   // Always call traceSetup before rendering anything.
   traceSetup(w, h);
 
+  for (int y=0;y<h;y++){
+    for (int x=0;x<w;x++){
+      double px = x+0.5;
+      double py = y+0.5;
+      tracePixel(x,y);
+    }
+  }
+  setReady(true);
+
   // YOUR CODE HERE
+
+  // FIX: this will automatically generate - loop over all the pixels -- 
   // FIXME: Start one or more threads for ray tracing
   //
   // TIPS: Ideally, the traceImage should be executed asynchronously,
