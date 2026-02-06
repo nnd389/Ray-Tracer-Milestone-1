@@ -72,14 +72,17 @@ glm::dvec3 RayTracer::tracePixel(int i, int j) {
 
 // Do recursive ray tracing! You'll want to insert a lot of code here (or places
 // called from here) to handle reflection, refraction, etc etc.
-glm::dvec3 RayTracer::traceRay(ray &r, const glm::dvec3 &thresh, int depth,
-                               double &t) {
+glm::dvec3 RayTracer::traceRay(ray &r, const glm::dvec3 &thresh, int depth, double &t) {
   isect i;
   glm::dvec3 colorC;
+  //std::cerr << "traceRay called\n";
+
 #if VERBOSE
   std::cerr << "== current depth: " << depth << std::endl;
 #endif
 
+// Tyler's code for reflection/refraction
+#if 1
   if (scene->intersect(r, i)) {
     // YOUR CODE HERE
 
@@ -93,6 +96,112 @@ glm::dvec3 RayTracer::traceRay(ray &r, const glm::dvec3 &thresh, int depth,
 
     const Material &m = i.getMaterial();
     colorC = m.shade(scene.get(), r, i);
+    t = i.getT();
+
+
+    //////////////////////
+    ///// REFLECTION /////
+    //////////////////////
+    if (depth > 0 && m.Refl()) { // depths checks if we still have recursion depth left, and the Refl() function checks if the material is reflective
+    //if (depth > 0) {
+      //std::cerr << "REFLECTION BLOCK depth=" << depth << "\n";
+      glm::dvec3 kr = m.kr(i); // This is the reflection coefficient (RGB)
+      //glm::dvec3 kr(1.0, 1.0, 1.0); // For testing reflection without material, set kr to (1,1,1) for perfect reflection
+      // kr = (0,0,0) means no reflection, kr = (1,1,1) means perfect reflection
+    
+      // Checks if the reflection is worth doing -- if the reflection coefficient is very small, it won't contribute much to the final color, so we can skip it
+      //if (kr.x > thresh.x || kr.y > thresh.y || kr.z > thresh.z) {
+      if (glm::compMax(kr) > 1e-6) {
+        glm::dvec3 P = r.at(i.getT()); // This is the point of intersection
+        glm::dvec3 N = glm::normalize(i.getN()); // unit surface normal at intersection
+        glm::dvec3 I = glm::normalize(r.getDirection()); // direction the ray travels
+
+        if (glm::dot(I, N) > 0.0) N = -N; // flip normal if ray is inside the surface
+
+        //glm::dvec3 Rdir = glm::normalize(glm::reflect(I, N)); // Where we could use glm::reflect, but required to do it manually for the assignment
+        // Manual mirror reflection using r = 2(l·n)n − l  (from formula sheet)
+        //glm::dvec3 l = -I; // convert ray-travel direction to the "incoming-to-surface" direction used in the notes
+        //glm::dvec3 Rdir = glm::normalize(2.0 * glm::dot(l, N) * N - l);
+        glm::dvec3 Rdir = glm::normalize(I - 2.0 * glm::dot(I, N) * N); 
+
+
+        // Creates the reflected ray with a small offset to avoid self-intersection
+        const double eps = RAY_EPSILON; // Definied in ray.h
+        //const double eps = 1e-3; // A larger epsilon for testing
+        //ray Rray(P + eps * N, Rdir, glm::dvec3(1.0, 1.0, 1.0), ray::VISIBILITY);
+        //ray Rray(P + eps * Rdir, Rdir, glm::dvec3(1.0, 1.0, 1.0), ray::REFLECTION);
+        ray Rray(P + eps * N, Rdir, glm::dvec3(1.0), ray::REFLECTION);
+
+
+        // Recursively traces the reflected ray
+        double tR;
+        glm::dvec3 Rcol = traceRay(Rray, thresh, depth - 1, tR);
+        //std::cerr << "tR=" << tR << " Rcol=" << Rcol.x << "," << Rcol.y << "," << Rcol.z << "\n";
+        colorC += kr * Rcol; // Adds the reflection contribution to the final color, scaled by the reflection coefficient
+      }
+    }
+    
+    //////////////////////
+    ///// REFRACTION /////
+    //////////////////////
+    if (depth > 0 && m.Trans()) { // depth checks if we have recursion left and Trans checks if the material has a nonzero transmissive term
+      glm::dvec3 kt = m.kt(i);
+
+      // Skip if essentially zero
+      if (glm::compMax(kt) > 1e-6) {
+        glm::dvec3 P = r.at(i.getT());
+        glm::dvec3 N = glm::normalize(i.getN());
+        glm::dvec3 I = glm::normalize(r.getDirection());
+
+        // Indices of refraction
+        double n1 = 1.0; // IOR of medium the ray is currently in
+        double n2 = m.index(i); // IOR of the objects material
+
+        // Determine if we're entering or exiting
+        // If dot(I, N) > 0, ray is inside the object heading out -> flip N and swap IORs
+        if (glm::dot(I, N) > 0.0) {
+          N = -N;
+          std::swap(n1, n2);
+        }
+
+        double eta = n1 / n2;
+
+        // cosi = cos(theta_i) with theta_i measured from the normal
+        double cosi = -glm::dot(N, I); // should be >= 0 after orientation
+        
+        // This avoids arcsin out of bounds err
+        // k = 1 - eta^2 (1 - cosi^2)
+        double sin2t = eta * eta * (1.0 - cosi * cosi);
+        double k = 1.0 - sin2t;
+
+        if (k < 0.0) {
+          // Total Internal Reflection: fall back to reflection
+          glm::dvec3 Rdir = glm::normalize(I - 2.0 * glm::dot(I, N) * N);
+          const double eps = RAY_EPSILON;
+          ray Rray(P + eps * N, Rdir, glm::dvec3(1.0), ray::REFLECTION);
+
+          double tR;
+          glm::dvec3 Rcol = traceRay(Rray, thresh, depth - 1, tR);
+
+          colorC += kt * Rcol;
+        } else {
+          double cost = std::sqrt(k);
+
+          // Transmitted direction (Snell)
+          glm::dvec3 Tdir = glm::normalize(eta * I + (eta * cosi - cost) * N);
+
+          const double eps = RAY_EPSILON;
+
+          // Offset the origin slightly *into the transmitted side*.
+          ray Tray(P - eps * N, Tdir, glm::dvec3(1.0), ray::REFRACTION);
+
+          double tT;
+          glm::dvec3 Tcol = traceRay(Tray, thresh, depth - 1, tT);
+
+          colorC += kt * Tcol;
+        }
+      }
+    }
   } else {
     // No intersection. This ray travels to infinity, so we color
     // it according to the background color, which in this (simple)
@@ -103,9 +212,13 @@ glm::dvec3 RayTracer::traceRay(ray &r, const glm::dvec3 &thresh, int depth,
     // traceUI->getCubeMap();
     //       Check traceUI->cubeMap() to see if cubeMap is loaded
     //       and enabled.
-
-    colorC = glm::dvec3(0.0, 0.0, 0.0);
+    t = std::numeric_limits<double>::infinity();
+    //colorC = glm::dvec3(0.0, 0.0, 0.0);
+    colorC = glm::dvec3(1.0, 0.0, 1.0);
   }
+#endif
+// End of Tyler's code for reflection/refraction
+
 #if VERBOSE
   std::cerr << "== depth: " << depth + 1 << " done, returning: " << colorC
             << std::endl;
@@ -284,7 +397,6 @@ void RayTracer::waitRender() {
   //
   // TIPS: Join all worker threads here.
 }
-
 
 glm::dvec3 RayTracer::getPixel(int i, int j) {
   unsigned char *pixel = buffer.data() + (i + j * buffer_width) * 3;
