@@ -12,37 +12,57 @@ double DirectionalLight::distanceAttenuation(const glm::dvec3 &) const {
   return 1.0;
 }
 
+
+
+
+
 glm::dvec3 DirectionalLight::shadowAttenuation(const ray &r,
                                                const glm::dvec3 &p) const {
   // YOUR CODE HERE:
   // You should implement shadow-handling code here.
-  // ask chatgpt about shadow attenuation: for non-transperent is zero for transparent is something 
   // attenuate by k_t^d 
 
-  glm::dvec3 attenuation(1.0, 1.0, 1.0);
-  ray shadowRay = r;
+  glm::dvec3 attenuation(1.0);
+
+  glm::dvec3 dir = glm::normalize(getDirection(p)); // direction toward the light??
+  glm::dvec3 N = -glm::normalize(r.getDirection()); // avoid self shadowing
+
+  ray shadowRay(p+RAY_EPSILON*N, dir, glm::dvec3(1.0), ray::SHADOW);
   isect i;
 
-  // trace direcntional lights until infinite
-  //while(shadowRay.getScene()->intersect(shadowRay, i)){
-  while(getScene()->intersect(shadowRay, i)){
+  while (getScene()->intersect(shadowRay, i)){
     const Material &mat = i.getMaterial();
-    if (!mat.Trans()){
-      return glm::dvec3(0.0, 0.0, 0.0);
+    glm::dvec3 kt = mat.kt(i);
+    // opaque object gets full shadow
+    if (glm::length(kt)==0.0){ // FIX: might not be correct conditional
+      return glm::dvec3(0.0);
+    }
+    
+    double tEntry = i.getT(); // inside a TRANSPARENT object
+    ray insideRay(shadowRay.at(tEntry)+RAY_EPSILON*dir, dir, glm::dvec3(1.0), ray::SHADOW); // move shadow ray slighty inside object
+    isect iExit;
+    if (!getScene()->intersect(insideRay, iExit)){
+      break; // FIX: pretty sure I can get rid of this if statement
     }
 
-    double d = i.getT(); // d is distance travelled INSIDE object
-    glm::dvec3 kt = mat.kt(i); 
-    attenuation *= glm::pow(kt, glm::dvec3(d)); //attenuate by kt^d
+    double d = iExit.getT(); // d is distance traveled INSIDE object
+    attenuation *= glm::pow(kt, glm::dvec3(d)); // attenuate by kt^d
 
-    shadowRay = ray(shadowRay.at(i.getT()) + RAY_EPSILON*shadowRay.getDirection(), shadowRay.getDirection(), shadowRay.getAtten(), ray::SHADOW); // continue ray past intersection
+    if (glm::compMax(attenuation)<=1e-6){ // leave if ur almost black shadow
+      return glm::dvec3(0.0); 
+    }
+    // GWWURL shadow attenuation caused me issues jussayin 
+
+    shadowRay = ray(insideRay.at(iExit.getT()) + RAY_EPSILON*dir, dir, glm::dvec3(1.0), ray::SHADOW); // continue past object
   }
-  return attenuation; 
+  return attenuation;
 
-  //return glm::dvec3(1.0, 1.0, 1.0);
+
 }
 
+
 glm::dvec3 DirectionalLight::getColor() const { return color; }
+
 
 glm::dvec3 DirectionalLight::getDirection(const glm::dvec3 &) const {
   return -orientation;
@@ -76,10 +96,12 @@ glm::dvec3 PointLight::getDirection(const glm::dvec3 &P) const {
   return glm::normalize(position - P);
 }
 
+
+
 glm::dvec3 PointLight::shadowAttenuation(const ray &r,
                                          const glm::dvec3 &p) const {                                     
-  // YOUR CODE HERE:
-  // You should implement shadow-handling code here.
+  // // YOUR CODE HERE:
+  // // You should implement shadow-handling code here.
   glm::dvec3 attenuation(1.0, 1.0, 1.0);
 
   
@@ -104,13 +126,16 @@ glm::dvec3 PointLight::shadowAttenuation(const ray &r,
 
     double d = t; // d is distance travled inside the object
     attenuation *= glm::pow(kt, glm::dvec3(d));
-
     shadowRay = ray(shadowRay.at(t) + RAY_EPSILON*dir, dir, shadowRay.getAtten(), ray::SHADOW); // go past interseciton
   }
   return attenuation;
 
-  return glm::dvec3(1, 1, 1);
+  //
+  // return glm::dvec3(1, 1, 1);
 }
+
+
+
 
 #define VERBOSE 0
 

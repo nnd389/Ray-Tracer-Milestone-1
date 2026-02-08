@@ -74,10 +74,12 @@ glm::dvec3 Material::shade(Scene *scene, const ray &r, const isect &i) const {
     double lightAttenuation = pLight->distanceAttenuation(P); // FIX: fix code in distanceAttenuation in light.cpp
     //FIX: also need to call shadowAttenuation, but where?? 
     glm::dvec3 shadowAtten = pLight->shadowAttenuation(r,P); // where do I use this though?
+    // something is incredible wrong with shadow attenuation suddenly 
 
     // multiply shadow attentuation and distance attentuation
 
 
+    //color += I * lightAttenuation * (kd(i)*NdotL + ks(i)*spec);
     color += I * lightAttenuation * shadowAtten * (kd(i)*NdotL + ks(i)*spec);
 
   }

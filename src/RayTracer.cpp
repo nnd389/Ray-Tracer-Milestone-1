@@ -213,8 +213,8 @@ glm::dvec3 RayTracer::traceRay(ray &r, const glm::dvec3 &thresh, int depth, doub
     //       Check traceUI->cubeMap() to see if cubeMap is loaded
     //       and enabled.
     t = std::numeric_limits<double>::infinity();
-    //colorC = glm::dvec3(0.0, 0.0, 0.0);
-    colorC = glm::dvec3(1.0, 0.0, 1.0);
+    colorC = glm::dvec3(0.0, 0.0, 0.0);
+    //colorC = glm::dvec3(1.0, 0.0, 1.0);
   }
 #endif
 // End of Tyler's code for reflection/refraction
