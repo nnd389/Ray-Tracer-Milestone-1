@@ -95,27 +95,28 @@ bool TrimeshFace::intersectLocal(ray &r, isect &i) const {
        assign this material to the intersection.
      - If neither is true, assign the parent's material to the intersection.
   */
-
+  // see Real-Time_Collision_Detection_----_(Chapter_5_Basic_Primitive_Tests).pdf
+  // section 5.3.6 Intersecting Ray or Segment Against Triangle
   glm::dvec3 A = parent->vertices[ids[0]];
   glm::dvec3 B = parent->vertices[ids[1]];
   glm::dvec3 C = parent->vertices[ids[2]];
 
-  glm::dvec3 BA = B-A;
-  glm::dvec3 CA = C-A;
+  glm::dvec3 AB = B-A;
+  glm::dvec3 AC = C-A;
 
-  glm::dvec3 h = glm::cross(r.getDirection(),CA);
-  double a = glm::dot(BA, h);
-  if (fabs(a)<1e-8) return false; // if parrallel return false
+  // calculate denomenator
+  double d = glm::dot(-r.getDirection(), glm::cross(AB,AC)); // d = (P-Q) dot ((B-A)x(C-A)),    (P-Q)=-Direction
+  if (fabs(d)<1e-8) return false; // if d=0, the segment runs parallel to the triangle
 
-  glm::dvec3 s = r.getPosition()-A; // ray to point A
-  double u = glm::dot(s,h) / a;
-  if (u<0.0 || u > 1.0) return false;
+  // calculate barycentric coordinates u, v, w 
+  double u = glm::dot(-r.getDirection(), glm::cross(r.getPosition()-A, AC)) / d; // u = [(P-Q) dot ((P-A)x(C-A)) / d],     d is denominator defined above
+  double v = glm::dot(-r.getDirection(), glm::cross(AB, r.getPosition()-A)) / d; // v = [(P-Q) dot ((B-A)x(P-A)) / d],     d is denominator defined above
+  double w = 1-u-v;
+  if (u<0.0 || v<0.0 || w<0.0) return false; // if u, v, or w are negative we are outside the triangle
 
-  glm::dvec3 q = cross(s, BA);
-  double v = glm::dot(r.getDirection(), q);
-  if (v<0.0 || u+v > 1.0) return false;
+  // solve for t to get intersecting point
+  double t = glm::dot(r.getPosition()-A, glm::cross(AB, AC)) / d; // t = [(P-A) dot ((B-A)x(C-A)) / d],     d is denominator defined above
 
-  double t = glm::dot(CA, q);
   if(t<RAY_EPSILON) return false;
 
   //fill intersection
