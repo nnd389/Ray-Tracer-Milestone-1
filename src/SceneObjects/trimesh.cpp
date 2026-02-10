@@ -122,7 +122,24 @@ bool TrimeshFace::intersectLocal(ray &r, isect &i) const {
   //fill intersection
   i.setT(t);
   i.setObject(parent);
-  i.setN(normal);
+  //i.setN(normal);
+  // Phong interpolation of normals (only if per-vertex normals exist)
+  if (!parent->normals.empty()) {
+    glm::dvec3 nA = parent->normals[ids[0]];
+    glm::dvec3 nB = parent->normals[ids[1]];
+    glm::dvec3 nC = parent->normals[ids[2]];
+
+    glm::dvec3 N = w * nA + u * nB + v * nC;   // w=(1-u-v) corresponds to A
+
+    // Renormalize interpolated normal
+    double n2 = glm::dot(N, N);
+    if (n2 > 1e-20) N = glm::normalize(N);
+    else N = normal;
+
+    i.setN(N);
+  } else {
+    i.setN(normal); // face normal fallback
+  }
 
   if(!parent->uvCoords.empty()){
     glm::dvec2 uA = parent->uvCoords[ids[0]];

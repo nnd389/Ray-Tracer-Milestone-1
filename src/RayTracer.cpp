@@ -56,17 +56,37 @@ glm::dvec3 RayTracer::tracePixel(int i, int j) {
   if (!sceneLoaded())
     return col;
 
-  double x = double(i) / double(buffer_width);
-  double y = double(j) / double(buffer_height);
+  // samples is synced in traceSetup(): expected 1, 4, 9, or 16
+  int N = (int)std::round(std::sqrt((double)samples));
+  if (N < 1) N = 1;
+  if (N > 4) N = 4;
+
+  glm::dvec3 sum(0.0, 0.0, 0.0);
+
+  for (int sy = 0; sy < N; sy++) {
+    for (int sx = 0; sx < N; sx++) {
+      // box filter: sample at center of each subcell
+      double dx = (sx + 0.5) / (double)N;
+      double dy = (sy + 0.5) / (double)N;
+
+      double x = (i + dx) / (double)buffer_width;
+      double y = (j + dy) / (double)buffer_height;
+
+      sum += trace(x, y);
+    }
+  }
+
+  col = sum / (double)(N * N);
+  col = glm::clamp(col, 0.0, 1.0);
 
   unsigned char *pixel = buffer.data() + (i + j * buffer_width) * 3;
-  col = trace(x, y);
-
   pixel[0] = (int)(255.0 * col[0]);
   pixel[1] = (int)(255.0 * col[1]);
   pixel[2] = (int)(255.0 * col[2]);
+
   return col;
 }
+
 
 #define VERBOSE 0
 
